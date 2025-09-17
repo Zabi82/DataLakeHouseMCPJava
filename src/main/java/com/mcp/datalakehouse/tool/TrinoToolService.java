@@ -49,19 +49,27 @@ public class TrinoToolService {
         }
     }
 
-    @Tool(name = "trino_schemas", description = "List all schemas in the specified Trino catalog.")
-    public Object listTrinoSchemas(String catalog) {
-        catalog = sanitizeIdentifier(catalog != null ? catalog : defaultCatalog);
-        try (Connection conn = getConnection(catalog); Statement stmt = conn.createStatement()) {
-            ResultSet rs = stmt.executeQuery("SHOW SCHEMAS FROM " + catalog);
-            List<String> schemas = new ArrayList<>();
-            while (rs.next()) schemas.add(rs.getString(1));
-            logger.info("Trino schemas for catalog '{}' fetched: {}", catalog, schemas);
-            return Map.of("schemas", schemas);
-        } catch (Exception e) {
-            logger.error("Error fetching Trino schemas for catalog '{}': {}", catalog, e.getMessage());
-            return Map.of("error", e.getMessage());
+    @Tool(name = "trino_schemas", description = "List all schemas in the specified Trino catalog or multiple catalogs.")
+    public Object listTrinoSchemas(String... catalogs) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        // Defensive: if null or empty, use defaultCatalog
+        if (catalogs == null || catalogs.length == 0) {
+            catalogs = new String[] { defaultCatalog };
         }
+        for (String catalog : catalogs) {
+            catalog = sanitizeIdentifier(catalog != null ? catalog : defaultCatalog);
+            try (Connection conn = getConnection(catalog); Statement stmt = conn.createStatement()) {
+                ResultSet rs = stmt.executeQuery("SHOW SCHEMAS FROM " + catalog);
+                List<String> schemas = new ArrayList<>();
+                while (rs.next()) schemas.add(rs.getString(1));
+                logger.info("Trino schemas for catalog '{}' fetched: {}", catalog, schemas);
+                result.add(Map.of("catalog", catalog, "schemas", schemas));
+            } catch (Exception e) {
+                logger.error("Error fetching Trino schemas for catalog '{}': {}", catalog, e.getMessage());
+                result.add(Map.of("catalog", catalog, "error", e.getMessage()));
+            }
+        }
+        return result;
     }
 
     @Tool(name = "trino_iceberg_tables", description = "List all Iceberg tables in the specified Trino catalog and schema.")
