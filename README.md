@@ -51,7 +51,7 @@ DataLakeHouseMCP Java is a Spring Boot-based MCP server that exposes resources a
 ### Trino & Iceberg Tools
 - **List Iceberg Tables**: Lists all Iceberg tables in a specified Trino catalog.
 - **List Trino Catalogs**: Lists all catalogs available in the Trino cluster.
-- **List Trino Schemas**: Lists all schemas in a specified Trino catalog.
+- **List Trino Schemas**: Lists all schemas in one or more specified Trino catalogs (multi-catalog supported).
 - **Get Iceberg Table Schema**: Returns the schema (columns/types) of an Iceberg table.
 - **Execute Trino Query**: Executes a SQL query on Trino and returns results.
 - **Iceberg Time Travel Query**: Executes a time travel query on Iceberg tables using Trino. Supports ISO 8601 timestamp or snapshot ID.
